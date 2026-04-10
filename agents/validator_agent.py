@@ -1,3 +1,5 @@
+import os
+import json
 from datetime import datetime, timedelta
 
 
@@ -7,7 +9,7 @@ class ValidatorAgent:
     No requiere servicios externos — es lógica pura.
     """
 
-    REGLAS = {
+    REGLAS_DEFAULT = {
         "factura": [
             {"campo": "monto_total", "max": 50000, "alerta": "Factura de alto valor (>$50,000)"},
             {"campo": "fecha_vencimiento", "dias": 7, "alerta": "Vencimiento en menos de 7 días"},
@@ -19,13 +21,39 @@ class ValidatorAgent:
         ],
     }
 
+    def __init__(self):
+        self.ruta_reglas = os.path.join("data", "reglas.json")
+        self.reglas = {}
+        self._inicializar_reglas()
+
+    def _inicializar_reglas(self):
+        """Carga las reglas desde el archivo o crea uno por defecto si no existe."""
+        os.makedirs(os.path.dirname(self.ruta_reglas), exist_ok=True)
+        
+        if not os.path.exists(self.ruta_reglas):
+            print(f"[ValidatorAgent] Creando archivo de reglas por defecto en {self.ruta_reglas}")
+            self.reglas = self.REGLAS_DEFAULT
+            with open(self.ruta_reglas, "w", encoding="utf-8") as f:
+                json.dump(self.REGLAS_DEFAULT, f, indent=4, ensure_ascii=False)
+        else:
+            self.recargar_reglas()
+
+    def recargar_reglas(self):
+        """Vuelve a cargar las reglas desde el archivo JSON."""
+        try:
+            with open(self.ruta_reglas, "r", encoding="utf-8") as f:
+                self.reglas = json.load(f)
+            print(f"[ValidatorAgent] ✅ Reglas recargadas desde {self.ruta_reglas}")
+        except Exception as e:
+            print(f"[ValidatorAgent] ❌ Error recargando reglas: {e}. Usando reglas actuales.")
+
     def validar(self, analisis: dict) -> dict:
         tipo = analisis.get("tipo_documento", "otro")
         entidades = {e["nombre"].lower(): e["valor"] for e in analisis.get("entidades", [])}
         alertas_del_analisis = analisis.get("alertas", [])
 
         flags = []
-        reglas = self.REGLAS.get(tipo, [])
+        reglas = self.reglas.get(tipo, [])
 
         for regla in reglas:
             campo = regla.get("campo", "")

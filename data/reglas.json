@@ -1,0 +1,31 @@
+{
+    "factura": [
+        {
+            "campo": "monto_total",
+            "max": 50000,
+            "alerta": "Factura de alto valor (>$50,000)"
+        },
+        {
+            "campo": "fecha_vencimiento",
+            "dias": 7,
+            "alerta": "Vencimiento en menos de 7 días"
+        }
+    ],
+    "contrato": [
+        {
+            "campo": "penalidad",
+            "palabra_clave": "penalidad",
+            "alerta": "Cláusula de penalidad detectada"
+        },
+        {
+            "campo": "duracion_meses",
+            "max": 24,
+            "alerta": "Contrato de larga duración (>24 meses)"
+        },
+        {
+            "campo": "renovacion_automatica",
+            "palabra_clave": "automática",
+            "alerta": "Contrato con renovación automática"
+        }
+    ]
+}
